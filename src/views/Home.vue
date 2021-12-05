@@ -13,13 +13,11 @@
 			</datalist>
 		</div>
 
-		<div class="time-container">
-			<draggable class="time-container" v-model="selectedTimeZones" group="people" @start="drag = true" @end="drag = false" item-key="id">
-				<template #item="{ element }">
-					<TimeItem :timezone="element" />
-				</template>
-			</draggable>
-		</div>
+		<draggable class="time-container" v-model="times" @start="drag = true" @end="drag = false" item-key="timeZone">
+			<template #item="{ element }">
+				<TimeItem :timeZone="element" />
+			</template>
+		</draggable>
 	</div>
 </template>
 
@@ -46,10 +44,13 @@ import { defineComponent } from 'vue';
 import TimeItem from '@/components/TimeItem.vue';
 import { getTimeZones, TimeZone } from '@vvo/tzdb';
 import draggable from 'vuedraggable';
+import { initialize, ITimezoneTimes } from '@/utils';
+
 interface IData {
 	timeZones: TimeZone[];
 	timeZoneNames: string[];
 	selectedTimeZones: string[];
+	times: ITimezoneTimes[];
 	drag: boolean;
 }
 
@@ -64,6 +65,7 @@ export default defineComponent({
 			timeZones: [],
 			timeZoneNames: [],
 			selectedTimeZones: [],
+			times: [],
 			drag: false,
 		};
 		return _data;
@@ -79,6 +81,16 @@ export default defineComponent({
 			const timeZone: string = event?.target?.value || defaultTimeZone;
 			if (this.timeZoneNames.includes(timeZone) && !this.selectedTimeZones.includes(timeZone)) {
 				this.selectedTimeZones.push(timeZone);
+
+				const date = new Date().toLocaleString('en-US', {
+					timeZone,
+				});
+
+				const timeZoneTime: ITimezoneTimes = {
+					timeZone,
+					times: initialize(new Date(date)),
+				};
+				this.times.push(timeZoneTime);
 			}
 		},
 	},

@@ -1,7 +1,12 @@
 <template>
 	<div class="time">
-		<p>{{ timezone }}</p>
-		<div class="item" :class="{ 'work-time': time.isWorkHour, 'current-time': time.isCurrentTime }" v-for="(time, i) in times" :key="i">
+		<p>{{ timeZone.timeZone }}</p>
+		<div
+			class="item"
+			:class="{ 'work-time': time.isWorkHour, 'current-time': time.isCurrentTime }"
+			v-for="(time, i) in timeZone.times"
+			:key="i"
+		>
 			{{ time.dateStr }}
 		</div>
 	</div>
@@ -26,33 +31,16 @@
 </style>
 
 <script lang="ts">
-import { IDateTime } from '@/utils/IDateTime';
-import { setMinutes } from 'date-fns';
-import { defineComponent } from 'vue';
-import { initialize } from '../utils';
-
-interface IData {
-	times: IDateTime[];
-}
+import { ITimezoneTimes } from '@/utils';
+import { defineComponent, PropType } from 'vue';
 
 export default defineComponent({
 	name: 'TimeItem',
 	props: {
-		timezone: String,
-	},
-	data() {
-		const _data: IData = {
-			times: [],
-		};
-		return _data;
-	},
-	mounted() {
-		const date = new Date().toLocaleString('en-US', {
-			timeZone: this.timezone,
-		});
-		const dateReset = setMinutes(new Date(date), 0);
-
-		this.times = initialize(dateReset);
+		timeZone: {
+			type: Object as PropType<ITimezoneTimes>,
+			required: true,
+		},
 	},
 });
 </script>
