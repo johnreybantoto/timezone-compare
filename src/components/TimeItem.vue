@@ -1,6 +1,7 @@
 <template>
 	<div class="time">
 		<p>{{ timeZone.timeZone }}</p>
+		<button class="btn" @click="addFromStart">+</button>
 		<div
 			class="item"
 			:class="{ 'work-time': time.isWorkHour, 'current-time': time.isCurrentTime }"
@@ -9,6 +10,7 @@
 		>
 			{{ time.dateStr }}
 		</div>
+		<button class="btn" @click="addToEnd">+</button>
 	</div>
 </template>
 
@@ -28,6 +30,14 @@
 .current-time {
 	background-color: #629bca;
 }
+
+.btn {
+	padding: 0.5em;
+	margin: 0.3em;
+	background-color: #4eda94;
+	border-radius: 10px;
+	cursor: pointer;
+}
 </style>
 
 <script lang="ts">
@@ -40,6 +50,14 @@ export default defineComponent({
 		timeZone: {
 			type: Object as PropType<ITimezoneTimes>,
 			required: true,
+		},
+	},
+	methods: {
+		addFromStart() {
+			this.$emit('addFromStart');
+		},
+		addToEnd() {
+			this.$emit('addToEnd');
 		},
 	},
 });

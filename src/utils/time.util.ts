@@ -1,7 +1,7 @@
 import { IDateTime } from './IDateTime';
 import { add, format, getHours, setMinutes } from 'date-fns';
 
-export const formatDate = (date: Date, pattern = '(EEEEEE) MMM dd, yy hh:mm bbb'): string => {
+export const formatDate = (date: Date, pattern = '(EEEEEE) MMM dd, yy hh:mm aaa'): string => {
 	return format(date, pattern);
 };
 
@@ -25,9 +25,9 @@ export const push = (date: Date, num = 18): IDateTime[] => {
 	});
 };
 
-export const initialize = (date: Date): IDateTime[] => {
+export const initialize = (date: Date, minutes: number, startHours: number, endHours: number): IDateTime[] => {
 	const currentDate = { dateStr: formatDate(date), isCurrentTime: true, isWorkHour: isWorkHour(date) };
-	const dateReset = setMinutes(new Date(date), 0);
+	const dateReset = setMinutes(new Date(date), minutes);
 
-	return [...unshift(dateReset), currentDate, ...push(dateReset)];
+	return [...unshift(dateReset, startHours), currentDate, ...push(dateReset, endHours)];
 };
