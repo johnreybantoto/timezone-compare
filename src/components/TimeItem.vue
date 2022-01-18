@@ -1,7 +1,10 @@
 <template>
 	<div class="time">
-		<p>{{ timeZone.timeZone }}</p>
-		<button class="btn" @click="addFromStart">+</button>
+		<p>
+			{{ timeZone.timeZone }}
+			<span v-if="showRemove" class="btn" @click="removeTimeZone">❌</span>
+		</p>
+		<button class="btn btn-action" @click="addFromStart">+</button>
 		<div
 			class="item"
 			:class="{ 'work-time': time.isWorkHour, 'current-time': time.isCurrentTime }"
@@ -10,7 +13,7 @@
 		>
 			{{ time.dateStr }}
 		</div>
-		<button class="btn" @click="addToEnd">+</button>
+		<button class="btn btn-action" @click="addToEnd">+</button>
 	</div>
 </template>
 
@@ -32,11 +35,14 @@
 }
 
 .btn {
+	cursor: pointer;
+}
+
+.btn-action {
 	padding: 0.5em;
 	margin: 0.3em;
 	background-color: #4eda94;
 	border-radius: 10px;
-	cursor: pointer;
 }
 </style>
 
@@ -51,6 +57,10 @@ export default defineComponent({
 			type: Object as PropType<ITimezoneTimes>,
 			required: true,
 		},
+		showRemove: {
+			type: Boolean,
+			required: true,
+		},
 	},
 	methods: {
 		addFromStart() {
@@ -58,6 +68,9 @@ export default defineComponent({
 		},
 		addToEnd() {
 			this.$emit('addToEnd');
+		},
+		removeTimeZone() {
+			this.$emit('removeTimeZone', this.timeZone.timeZone);
 		},
 	},
 });

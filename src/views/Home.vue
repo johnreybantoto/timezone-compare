@@ -15,7 +15,13 @@
 
 		<draggable class="time-container" v-model="timeItems" @start="drag = true" @end="drag = false" item-key="timeZone">
 			<template #item="{ element }">
-				<TimeItem :timeZone="element" @addFromStart="addFromStart" @addToEnd="addToEnd" />
+				<TimeItem
+					:timeZone="element"
+					:showRemove="currentTimeZone !== element.timeZone"
+					@addFromStart="addFromStart"
+					@addToEnd="addToEnd"
+					@removeTimeZone="removeTimeZone"
+				/>
 			</template>
 		</draggable>
 	</div>
@@ -54,6 +60,7 @@ interface IData {
 	drag: boolean;
 	startHours: number;
 	endHours: number;
+	currentTimeZone: string;
 }
 
 export default defineComponent({
@@ -63,29 +70,43 @@ export default defineComponent({
 		draggable,
 	},
 	data() {
+		const start = localStorage.startHours;
+		const end = localStorage.endHours;
+		const storedTimeZones: string[] = localStorage.selectedTimeZones ? JSON.parse(localStorage.selectedTimeZones) : [];
+
 		const _data: IData = {
 			timeZones: [],
 			timeZoneNames: [],
-			selectedTimeZones: [],
+			selectedTimeZones: storedTimeZones || [],
 			timeItems: [],
 			drag: false,
-			startHours: 5,
-			endHours: 18,
+			startHours: start ? +start : 5,
+			endHours: end ? +end : 18,
+			currentTimeZone: '',
 		};
 		return _data;
 	},
 	mounted() {
 		this.timeZones = getTimeZones();
 		this.timeZoneNames = this.timeZones.map((x) => x.name);
-		const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		this.addTimezone(null, currentTimeZone);
+		this.currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+		if (this.selectedTimeZones.length > 0) {
+			for (const timeZone of this.selectedTimeZones) {
+				this.addTimezone(null, timeZone, false, true);
+			}
+		} else {
+			this.addTimezone(null, this.currentTimeZone);
+		}
 	},
 	methods: {
-		addTimezone(event: any, defaultTimeZone?: string) {
+		addTimezone(event: any, defaultTimeZone?: string, pushToTimeZones = true, isInitialized = false) {
 			const timeZone: string = event?.target?.value || defaultTimeZone;
 
-			if (this.timeZoneNames.includes(timeZone) && !this.selectedTimeZones.includes(timeZone)) {
-				this.selectedTimeZones.push(timeZone);
+			if (this.timeZoneNames.includes(timeZone) && (isInitialized || !this.selectedTimeZones.includes(timeZone))) {
+				if (pushToTimeZones) {
+					this.selectedTimeZones = [...this.selectedTimeZones, timeZone];
+				}
 
 				const date = new Date().toLocaleString('en-US', {
 					timeZone,
@@ -118,6 +139,21 @@ export default defineComponent({
 				x.times = [...x.times, ...push(new Date(date), 1)];
 			});
 			this.endHours += 1;
+		},
+		removeTimeZone(timeZone: string) {
+			this.selectedTimeZones = this.selectedTimeZones.filter((x) => x !== timeZone);
+			this.timeItems = this.timeItems.filter((x) => x.timeZone !== timeZone);
+		},
+	},
+	watch: {
+		selectedTimeZones(newVal) {
+			localStorage.setItem('selectedTimeZones', JSON.stringify(newVal));
+		},
+		startHours(newVal) {
+			localStorage.setItem('startHours', newVal);
+		},
+		endHours(newVal) {
+			localStorage.setItem('endHours', newVal);
 		},
 	},
 });
