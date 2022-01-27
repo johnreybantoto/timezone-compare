@@ -20,6 +20,8 @@
 					:showRemove="currentTimeZone !== element.timeZone"
 					@addFromStart="addFromStart"
 					@addToEnd="addToEnd"
+					@deductFromStart="deductFromStart"
+					@deductFromEnd="deductFromEnd"
 					@removeTimeZone="removeTimeZone"
 				/>
 			</template>
@@ -61,6 +63,7 @@ interface IData {
 	startHours: number;
 	endHours: number;
 	currentTimeZone: string;
+	interval?: number;
 }
 
 export default defineComponent({
@@ -83,23 +86,35 @@ export default defineComponent({
 			startHours: start ? +start : 5,
 			endHours: end ? +end : 18,
 			currentTimeZone: '',
+			interval: undefined,
 		};
 		return _data;
 	},
 	mounted() {
-		this.timeZones = getTimeZones();
-		this.timeZoneNames = this.timeZones.map((x) => x.name);
-		this.currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-		if (this.selectedTimeZones.length > 0) {
-			for (const timeZone of this.selectedTimeZones) {
-				this.addTimezone(null, timeZone, false, true);
-			}
-		} else {
-			this.addTimezone(null, this.currentTimeZone);
-		}
+		this.iniTializeTimes();
+	},
+	beforeUnmount() {
+		clearInterval(this.interval);
 	},
 	methods: {
+		iniTializeTimes() {
+			const init = () => {
+				this.timeItems = [];
+				this.timeZones = getTimeZones();
+				this.timeZoneNames = this.timeZones.map((x) => x.name);
+				this.currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+				if (this.selectedTimeZones.length > 0) {
+					for (const timeZone of this.selectedTimeZones) {
+						this.addTimezone(null, timeZone, false, true);
+					}
+				} else {
+					this.addTimezone(null, this.currentTimeZone);
+				}
+			};
+			init();
+			this.interval = setInterval(init, 3000);
+		},
 		addTimezone(event: any, defaultTimeZone?: string, pushToTimeZones = true, isInitialized = false) {
 			const timeZone: string = event?.target?.value || defaultTimeZone;
 
@@ -139,6 +154,26 @@ export default defineComponent({
 				x.times = [...x.times, ...push(new Date(date), 1)];
 			});
 			this.endHours += 1;
+		},
+		deductFromStart() {
+			if (this.startHours < 6) {
+				return;
+			}
+
+			this.timeItems.forEach((x) => {
+				x.times.shift();
+			});
+			this.startHours -= 1;
+		},
+		deductFromEnd() {
+			if (this.endHours < 10) {
+				return;
+			}
+
+			this.timeItems.forEach((x) => {
+				x.times.pop();
+			});
+			this.endHours -= 1;
 		},
 		removeTimeZone(timeZone: string) {
 			this.selectedTimeZones = this.selectedTimeZones.filter((x) => x !== timeZone);
