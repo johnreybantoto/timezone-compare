@@ -13,7 +13,14 @@
 			</datalist>
 		</div>
 
-		<draggable class="time-container" v-model="timeItems" @start="drag = true" @end="drag = false" item-key="timeZone">
+		<draggable
+			class="time-container"
+			v-model="timeItems"
+			@update="onUpdate($event)"
+			@start="drag = true"
+			@end="drag = false"
+			item-key="timeZone"
+		>
 			<template #item="{ element }">
 				<TimeItem
 					:timeZone="element"
@@ -91,17 +98,24 @@ export default defineComponent({
 		return _data;
 	},
 	mounted() {
+		this.timeZones = getTimeZones();
+		this.timeZoneNames = this.timeZones.map((x) => x.name);
 		this.iniTializeTimes();
 	},
 	beforeUnmount() {
 		clearInterval(this.interval);
 	},
 	methods: {
+		onUpdate(event: any) {
+			const selectedZones = this.selectedTimeZones;
+			const { newIndex: to, oldIndex: from } = event;
+
+			selectedZones.splice(to, 0, selectedZones.splice(from, 1)[0]);
+		},
 		iniTializeTimes() {
 			const init = () => {
 				this.timeItems = [];
-				this.timeZones = getTimeZones();
-				this.timeZoneNames = this.timeZones.map((x) => x.name);
+
 				this.currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 				if (this.selectedTimeZones.length > 0) {
@@ -113,7 +127,7 @@ export default defineComponent({
 				}
 			};
 			init();
-			this.interval = setInterval(init, 3000);
+			this.interval = setInterval(init, 10000);
 		},
 		addTimezone(event: any, defaultTimeZone?: string, pushToTimeZones = true, isInitialized = false) {
 			const timeZone: string = event?.target?.value || defaultTimeZone;
@@ -128,10 +142,12 @@ export default defineComponent({
 				});
 
 				const selectedTimeZone = this.timeZones.find((x) => x.name === timeZone);
-				const minutes = selectedTimeZone?.rawFormat.slice(4, 6) || 0;
+				const minutes = selectedTimeZone?.currentTimeFormat.slice(4, 6) || 0;
+				const info = `${selectedTimeZone?.abbreviation}(UTC${selectedTimeZone?.currentTimeFormat.slice(0, 6) || 0})`;
 
 				const timeZoneTime: ITimezoneTimes = {
 					timeZone,
+					info,
 					times: initialize(new Date(date), +minutes, this.startHours, this.endHours),
 				};
 				this.timeItems.push(timeZoneTime);

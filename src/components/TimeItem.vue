@@ -1,9 +1,14 @@
 <template>
 	<div class="time">
-		<p>
-			{{ timeZone.timeZone }}
-			<span v-if="showRemove" class="btn" @click="removeTimeZone">❌</span>
-		</p>
+		<div>
+			<p>
+				{{ timeZone.timeZone }}
+				<span v-if="showRemove" class="btn" @click="removeTimeZone">❌</span>
+			</p>
+			<p>
+				{{ timeZone.info }}
+			</p>
+		</div>
 
 		<div class="btn-group">
 			<button class="btn btn-action" @click="deductFromStart">-</button>
@@ -29,6 +34,14 @@
 .time {
 	border: 1px solid gray;
 	border-radius: 5px;
+}
+
+.mt-2 {
+	margin-top: 2rem;
+}
+
+.m-0 {
+	margin: 0;
 }
 .item {
 	padding: 0.5em;
